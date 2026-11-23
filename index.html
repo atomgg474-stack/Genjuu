@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- GENJUU_BUILD=5 -->
+<!-- GENJUU_BUILD=6 -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Genjuu Card Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -275,7 +275,7 @@ footer{max-width:1320px;margin:0 auto;padding:0 max(3vw,14px) 30px;color:var(--m
 <div class="goals" id="goals"></div>
 <nav class="tabs"><button data-tab="shop">Shop</button><button data-tab="stash">Stash <span id="sc"></span></button><button data-tab="col">Binder</button><button data-tab="mkt">Market</button><button data-tab="grade">Grading</button><button data-tab="lab" id="labtab" class="lk">???</button><button data-tab="counter" id="custtab">Counter</button><button data-tab="arena">Arena</button><button data-tab="prof">Profile</button></nav>
 <main id="main"></main>
-<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 5.</span><span class="btns"><button class="alt" data-checkupd>Check for updates</button><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
+<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 6.</span><span class="btns"><button class="alt" data-checkupd>Check for updates</button><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
 <div id="ov" hidden><div class="mod" role="dialog" aria-modal="true"><button class="x alt" data-close aria-label="Close">×</button><div id="mc"></div></div></div>
 <div id="tut" hidden><div id="tring"></div><div id="tpanel"></div></div>
 <canvas id="fx"></canvas>
@@ -359,14 +359,16 @@ const fresh=()=>({v:1,cash:60,start:Date.now(),season:1,seal:{"1-p":1},cards:[],
 const DEF=()=>({stats:{packs:0,cards:0,rar:[0,0,0,0,0,0],graded:0,tens:0,rest:0,cert:0,wins:0,losses:0,champ:0,evo:0,mp:0,earn:0,cust:0,best:0,bestName:""},ss:{},ach:{},labxp:0,cust:[],custNext:0,up:{sign:0,case:0,grade:0,luck:0,chair:0,free:0},daily:{last:"",streak:0},evp:{},team:[],arena:0,bw:[0,0,0],recaps:[]});
 const packCard=x=>[x.id,x.s,x.c,Math.round(x.q*100),x.g||0,x.r||0,typeof x.mp==="number"?x.mp:-1,(x.lab?1:0)|(x.inq?2:0)|(x.disp?4:0)|(x.lock?8:0)];
 const unpackCard=a=>{const o={id:a[0],s:a[1],c:a[2],q:a[3]/100,g:a[4],lab:!!(a[7]&1),r:a[5]};if(a[6]>=0)o.mp=a[6];if(a[7]&2)o.inq=true;if(a[7]&4)o.disp=true;if(a[7]&8)o.lock=true;return o};
-const expandSt=o=>{if(o&&Array.isArray(o.cz)){o.cards=o.cz.map(unpackCard);delete o.cz}if(o&&Array.isArray(o.qz)){o.q=o.qz.map(a=>({id:a[0],tier:a[1]?"exp":"std",start:a[2],done:a[3]}));delete o.qz}if(o&&!o.q)o.q=[];return o};
+const expandSt=o=>{if(o&&Array.isArray(o.cz)){o.cards=o.cz.map(unpackCard);delete o.cz}if(o&&Array.isArray(o.cg)){o.cards=o.cards||[];let nid=o.nid||1;for(const e of o.cg){const a=e.split(",").map(Number),n=a[7];for(let i=0;i<n;i++){const c={id:nid++,s:a[0],c:a[1],q:a[2]/20,g:a[3],lab:!!a[6],r:a[4]};if(a[5]>=0)c.mp=a[5];o.cards.push(c)}}o.nid=nid;delete o.cg}if(o&&Array.isArray(o.qz)){o.q=o.qz.map(a=>({id:a[0],tier:a[1]?"exp":"std",start:a[2],done:a[3]}));delete o.qz}if(o&&!o.q)o.q=[];return o};
 try{st=expandSt(JSON.parse(localStorage.getItem(KEY)))}catch(e){}
 if(!st||st.v!==1)st=fresh();
 {const D=DEF();for(const k in D)if(st[k]==null)st[k]=D[k];for(const k in D.stats)if(st.stats[k]==null)st.stats[k]=D.stats[k];for(const k in D.up)if(st.up[k]==null)st.up[k]=D.up[k]}
-const packSt=()=>JSON.stringify(Object.assign({},st,{cards:undefined,q:undefined,cz:st.cards.map(packCard),qz:st.q.map(o=>[o.id,o.tier==="exp"?1:0,o.start,o.done])}));
+const packSt=()=>{const keep=new Set(st.team||[]);(st.q||[]).forEach(o=>keep.add(o.id));const ind=[],grp=new Map();
+ for(const x of st.cards){if(x.inq||x.lock||x.disp||keep.has(x.id)){ind.push(packCard(x));continue}const k=x.s+","+x.c+","+Math.round(x.q*20)+","+(x.g||0)+","+(x.r||0)+","+(typeof x.mp==="number"?x.mp:-1)+","+(x.lab?1:0);grp.set(k,(grp.get(k)||0)+1)}
+ return JSON.stringify(Object.assign({},st,{cards:undefined,q:undefined,cz:ind,cg:[...grp].map(([k,n])=>k+","+n),qz:st.q.map(o=>[o.id,o.tier==="exp"?1:0,o.start,o.done])}))};
 let saveWarned=0,lastSaveOk=true;
 const save=()=>{for(let tries=0;tries<12;tries++){try{localStorage.setItem(KEY,packSt());lastSaveOk=true;return true}catch(e){if(tries===0){try{localStorage.removeItem("genjuu-code")}catch(_){}continue}if(!safetySell())break}}
- lastSaveOk=false;if(Date.now()-saveWarned>30000){saveWarned=Date.now();const t=document.getElementById("toast");if(t){t.textContent="Your progress can't be saved right now. Sell some cards before closing Genjuu.";t.classList.add("on");setTimeout(()=>t.classList.remove("on"),8000)}}return false};
+ lastSaveOk=false;if(Date.now()-saveWarned>30000){saveWarned=Date.now();try{modal(`<div style="text-align:center"><h2>Your progress isn't saving</h2><p>Your binder is too big to save. Before you close Genjuu, sell some cards (Binder → Sell everything, or sell your slabs) so it can save again. Otherwise you'll lose what you did since the last save.</p><button data-close>OK</button></div>`)}catch(_){}}return false};
 let safeSold=0,safeN=0;
 function safetySell(){const pool=st.cards.filter(x=>!x.g&&!x.inq&&!x.lock&&!x.disp&&typeof x.mp!=="number").sort((a,b)=>val(a)-val(b));if(!pool.length)return false;const sel=new Set(pool.slice(0,Math.max(300,Math.ceil(pool.length*.2))).map(x=>x.id));let sum=0,n=0;st.cards=st.cards.filter(x=>{if(sel.has(x.id)){sum+=val(x);n++;return false}return true});st.cash+=sum;st.stats.earn+=sum;safeSold+=sum;safeN+=n;
  clearTimeout(safetySell.t);safetySell.t=setTimeout(()=>{news(`SAFETY SELL: your binder got too big to save, so your ${safeN.toLocaleString("en-US")} cheapest raw cards were sold for ${fmt(safeSold)}. Locked, graded, displayed and misprinted cards are never touched.`);safeSold=0;safeN=0;renderTab()},50);return true}
@@ -568,7 +570,7 @@ function checkTime(){const now=Date.now();
   if(tutI<0&&!launch)modal(`${recapHTML(st.recaps[0])}<div style="text-align:center;margin-top:18px;padding-top:16px;border-top:2px dashed var(--line)"><h2>Season ${st.season}: ${S.n}</h2><p>A brand-new set of 30 spirits is on the shelves, with a new event: <b>${EVENTS[(st.season-1)%EVENTS.length].n}</b>.${newIn(st.season).length?` New on the shelf: <b>${newIn(st.season).map(k=>kind(k).n).join(", ")}</b>.`:""} Every older season just turned more vintage, so your old cards and sealed boxes are worth more.</p><div class="btns" style="justify-content:center;margin-top:14px"><button data-close>See the new packs</button></div></div>`);tab="shop";after()}
  renderTop();timers()}
 /* ---------- opening ---------- */
-function openFlow(pid,cards,cost,n=1){const[s,K]=pidp(pid);st.cards.push(...cards);track(cards,(K.o.packs?K.o.packs[1]:1)*n);pend={title:K.o.reprint&&cards.length?`Reprint box: ${getSet(cards[0].s).n} (Season ${cards[0].s})`:`${getSet(s).n} ${K.n}`,cards,cost};after();
+function openFlow(pid,cards,cost,n=1){const[s,K]=pidp(pid);for(const x of cards)st.cards.push(x);track(cards,(K.o.packs?K.o.packs[1]:1)*n);pend={title:K.o.reprint&&cards.length?`Reprint box: ${getSet(cards[0].s).n} (Season ${cards[0].s})`:`${getSet(s).n} ${K.n}`,cards,cost};after();
  modal(`<div class="tear"><h2>${pend.title}</h2><button class="packbig" data-tear aria-label="Open it">${prodSVG(s,K)}</button><p class="note" style="margin:0 auto">Tap it to tear it open</p></div>`)}
 function showCards(){const{title,cards,cost}=pend;opened=cards;const tot=cards.reduce((a,x)=>a+val(x),0),best=cards.reduce((a,x)=>val(x)>val(a)?x:a);
  modal(`<div class="ohd"><h2>${title}</h2><p>${cards.length} cards worth <b>${fmt(tot)}</b>${cost?` · you paid ${fmt(cost)} <span class="${tot>=cost?"up":"dn"}">${tot>=cost?"up":"down"} ${fmt(Math.abs(tot-cost))}</span>`:""}. Best pull: <b>${def(best).n}</b> (${RAR[def(best).r].n}).</p><p class="note">Tap a card to flip it. Gold glow means something good is under there.</p></div><div class="ogrid ${cards.length>10?"many":""}">${cards.map((x,i)=>{const r=def(x).r;return `<button class="slot down${r>=3||isMp(x)?" glow":""}" style="--i:${Math.min(i,40)};--gc:${RCOL[r]}" data-flip="${i}" aria-label="Flip card"><div class="flip"><div class="face">${itemCard(x)}</div><div class="back">${BACK}</div></div></button>`}).join("")}</div><div class="btns"><button data-revealall>Reveal all</button><button class="gold" data-sellallopen>Sell all ${cards.length} for ${fmt(tot)}</button><button class="alt" data-sellopen>Sell the Commons & Uncommons</button><button class="alt" data-close>Keep them</button></div>`)}
@@ -578,10 +580,11 @@ function sellList(list){const ids=new Set(list.map(x=>x.id));let sum=0;st.cards=
 const autoMode=()=>st.autoSell||(st.autoLow===false?"off":"low");
 const qtyOf=pid=>{const e=document.querySelector(`[data-qfor="${pid}"]`);return Math.min(1000,Math.max(1,Math.floor(+(e&&e.value)||1)))};
 function massOpen(groups,cost){let all=[],packs=0;const parts=[];
- groups.forEach(([pid,n])=>{const[s,K]=pidp(pid);for(let i=0;i<n;i++)all.push(...genOpen(pid));packs+=(K.o.packs?K.o.packs[1]:1)*n;parts.push(`${n}× ${getSet(s).n} ${K.n}`)});
- track(all,packs);let autoSum=0,autoN=0;
- if(autoMode()!=="off"){const cut=autoMode()==="rare"?3:2,low=all.filter(x=>def(x).r<cut&&!isMp(x));autoN=low.length;autoSum=low.reduce((a,x)=>a+val(x),0);const ids=new Set(low.map(x=>x.id));all=all.filter(x=>!ids.has(x.id));st.cash+=autoSum;st.stats.earn+=autoSum;ssc().earn+=autoSum}
- st.cards.push(...all);opened=all;after();
+ let autoSum=0,autoN=0;const S=st.stats,ss=ssc(),cut=autoMode()==="off"?-1:autoMode()==="rare"?3:2;
+ groups.forEach(([pid,n])=>{const[s,K]=pidp(pid);packs+=(K.o.packs?K.o.packs[1]:1)*n;parts.push(`${n.toLocaleString("en-US")}× ${getSet(s).n} ${K.n}`);
+  for(let i=0;i<n;i++)for(const x of genOpen(pid)){const r=def(x).r,v=val(x);S.cards++;ss.cards++;S.rar[r]++;if(isMp(x)){S.mp++;ss.mp++}if(v>S.best){S.best=v;S.bestName=def(x).n}if(v>ss.best){ss.best=v;ss.bestName=def(x).n}if(r<cut&&!isMp(x)){autoSum+=v;autoN++}else all.push(x)}});
+ S.packs+=packs;ss.packs+=packs;st.cash+=autoSum;S.earn+=autoSum;ss.earn+=autoSum;
+ for(const x of all)st.cards.push(x);opened=all;after();
  const cnt=[0,0,0,0,0,0];all.forEach(x=>cnt[def(x).r]++);const mps=all.filter(isMp),pri=all.filter(x=>x.q>=9.5&&def(x).r>=3),tot=all.reduce((a,x)=>a+val(x),0);
  const best=[...all].sort((a,b)=>(isMp(b)-isMp(a))||val(b)-val(a)).slice(0,18);
  modal(`<div class="ohd"><h2>Mass opening</h2><p>${parts.join(", ")}.${cost?` You paid ${fmt(cost)}.`:""} Kept <b>${all.length}</b> cards worth <b>${fmt(tot)}</b>${autoN?`, and auto-sold ${autoN} ${autoMode()==="rare"?"cards below Holo":"Commons & Uncommons"} for ${fmt(autoSum)}`:""}.</p></div>
