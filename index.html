@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- GENJUU_BUILD=1 -->
+<!-- GENJUU_BUILD=2 -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Genjuu Card Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -267,7 +267,7 @@ footer{max-width:1320px;margin:0 auto;padding:0 max(3vw,14px) 30px;color:var(--m
 <div class="tick" id="ticker"></div>
 <nav class="tabs"><button data-tab="shop">Shop</button><button data-tab="stash">Stash <span id="sc"></span></button><button data-tab="col">Binder</button><button data-tab="mkt">Market</button><button data-tab="grade">Grading</button><button data-tab="lab" id="labtab" class="lk">???</button><button data-tab="counter" id="custtab">Counter</button><button data-tab="arena">Arena</button><button data-tab="prof">Profile</button></nav>
 <main id="main"></main>
-<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 1.</span><span class="btns"><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
+<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 2.</span><span class="btns"><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
 <div id="ov" hidden><div class="mod" role="dialog" aria-modal="true"><button class="x alt" data-close aria-label="Close">×</button><div id="mc"></div></div></div>
 <div id="tut" hidden><div id="tring"></div><div id="tpanel"></div></div>
 <canvas id="fx"></canvas>
@@ -538,7 +538,7 @@ function checkTime(){const now=Date.now();
  if(now-st.lastMk>=MKT_MS){mktTick();st.lastMk=now-st.lastMk>MKT_MS*3?now:st.lastMk+MKT_MS;after()}
  custTick(now);
  const cur=seasonNow();if(cur>st.season){const ended=st.season,es=st.ss[ended]||{};st.recaps.unshift({s:ended,n:getSet(ended).n,owned:ownedCount(ended),...es});while(st.season<cur){st.vs[st.season]={p:12,b:3,e:2};st.season++;initSeason(st.season)}const S=getSet(st.season);news(`NEW SEASON: ${S.n} has arrived. Older seasons are now vintage.`);sfx.season();burst(innerWidth/2,120,RCOL,80,"conf");
-  if(tutI<0)modal(`${recapHTML(st.recaps[0])}<div style="text-align:center;margin-top:18px;padding-top:16px;border-top:2px dashed var(--line)"><h2>Season ${st.season}: ${S.n}</h2><p>A brand-new set of 30 spirits is on the shelves, with a new event: <b>${EVENTS[(st.season-1)%EVENTS.length].n}</b>.${newIn(st.season).length?` New on the shelf: <b>${newIn(st.season).map(k=>kind(k).n).join(", ")}</b>.`:""} Every older season just turned more vintage, so your old cards and sealed boxes are worth more.</p><div class="btns" style="justify-content:center;margin-top:14px"><button data-close>See the new packs</button></div></div>`);tab="shop";after()}
+  if(tutI<0&&!launch)modal(`${recapHTML(st.recaps[0])}<div style="text-align:center;margin-top:18px;padding-top:16px;border-top:2px dashed var(--line)"><h2>Season ${st.season}: ${S.n}</h2><p>A brand-new set of 30 spirits is on the shelves, with a new event: <b>${EVENTS[(st.season-1)%EVENTS.length].n}</b>.${newIn(st.season).length?` New on the shelf: <b>${newIn(st.season).map(k=>kind(k).n).join(", ")}</b>.`:""} Every older season just turned more vintage, so your old cards and sealed boxes are worth more.</p><div class="btns" style="justify-content:center;margin-top:14px"><button data-close>See the new packs</button></div></div>`);tab="shop";after()}
  renderTop();timers()}
 /* ---------- opening ---------- */
 function openFlow(pid,cards,cost,n=1){const[s,K]=pidp(pid);st.cards.push(...cards);track(cards,(K.o.packs?K.o.packs[1]:1)*n);pend={title:K.o.reprint&&cards.length?`Reprint box: ${getSet(cards[0].s).n} (Season ${cards[0].s})`:`${getSet(s).n} ${K.n}`,cards,cost};after();
@@ -842,8 +842,27 @@ document.addEventListener("click",e=>{lx=e.clientX||lx;ly=e.clientY||ly;const b=
  if("doreset" in d){const keep={sfx:st.sfx,music:st.music};st=fresh();Object.assign(st,keep,{tut:1});for(const k in SETC)delete SETC[k];usedNames.clear();initSeason(1);tab="stash";cset=1;closeM();after();toast("Fresh start. Your first pack is in the Stash.")}
 });
 /* ---------- boot ---------- */
-checkTime();after();setInterval(checkTime,1000);
+const BUILD=2;let launch=false;
+if((st.seenBuild||0)<2){if(st.season<2&&seasonNow()<2)st.start=Math.min(st.start,Date.now()-SEASON_MS);st.seenBuild=BUILD;launch=true}
+checkTime();
+if(launch){addSeal("b",1);addSeal("q",5);news(`UPDATE: Season ${st.season} arrived early. Your launch gift is in the Stash.`)}
+after();setInterval(checkTime,1000);
 if(!st.tut)setTimeout(()=>tutShow(0),500);
+else if(launch)setTimeout(showLaunch,700);
+if(!st.tut)launch=false;
+function showLaunch(){launch=false;const S=getSet(st.season),E=EVENTS[(st.season-1)%EVENTS.length],nw2=newIn(st.season).map(k=>kind(k).n),old=getSet(st.season-1);tab="shop";renderTab();
+ modal(`<div style="text-align:center"><small class="note">GENJUU UPDATE · BUILD ${BUILD}</small><h2 style="font-size:clamp(28px,4vw,42px);margin:6px 0">Season ${st.season} is here early!</h2><p class="big-res"><b>${S.n}</b> just opened at your stall.</p></div>
+ <div class="fan" style="margin:10px auto 18px;max-width:420px">${[24,27,29].map((i,k)=>`<div class="fc" style="--k:${k}"><div class="tilt">${cardHTML({s:st.season,c:i})}</div></div>`).join("")}</div>
+ <div class="recap">
+  <div class="stat"><small>New set</small><b>30 spirits + 2 promos</b></div>
+  <div class="stat"><small>Season event</small><b>${E.n}</b></div>
+  <div class="stat"><small>New on the shelf</small><b>${nw2.length?nw2.join(", "):"Fresh lineup"}</b></div>
+  <div class="stat"><small>${old.n} is now vintage</small><b>Worth ×${vint(st.season-1).toFixed(1)}</b></div>
+  <div class="stat"><small>Launch gift (in your Stash)</small><b>Booster box + 5 premium packs</b></div>
+ </div>
+ <p style="text-align:center">${E.d} Your ${old.n} cards and sealed packs just went up in value, and its last boxes are on the Vintage shelf. Buy up to 1,000 at once with the number box and the Max button.</p>
+ <div class="btns" style="justify-content:center;margin-top:14px">${st.recaps.length?`<button class="alt" data-recap="0">See my Season ${old.s} recap</button>`:""}<button class="alt" data-tab="stash">Open my launch gift</button><button class="gold" data-close>To the new season</button></div>`);
+ sfx.season();setTimeout(()=>{burst(innerWidth/2,innerHeight/3,RCOL,140,"conf");burst(innerWidth/4,innerHeight/2,RCOL,60,"conf");burst(innerWidth*3/4,innerHeight/2,RCOL,60,"conf")},250)}
 }
 </script>
 </body></html>
