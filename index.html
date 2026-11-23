@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- GENJUU_BUILD=3 -->
+<!-- GENJUU_BUILD=4 -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Genjuu Card Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -275,7 +275,7 @@ footer{max-width:1320px;margin:0 auto;padding:0 max(3vw,14px) 30px;color:var(--m
 <div class="goals" id="goals"></div>
 <nav class="tabs"><button data-tab="shop">Shop</button><button data-tab="stash">Stash <span id="sc"></span></button><button data-tab="col">Binder</button><button data-tab="mkt">Market</button><button data-tab="grade">Grading</button><button data-tab="lab" id="labtab" class="lk">???</button><button data-tab="counter" id="custtab">Counter</button><button data-tab="arena">Arena</button><button data-tab="prof">Profile</button></nav>
 <main id="main"></main>
-<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 3.</span><span class="btns"><button class="alt" data-checkupd>Check for updates</button><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
+<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 4.</span><span class="btns"><button class="alt" data-checkupd>Check for updates</button><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
 <div id="ov" hidden><div class="mod" role="dialog" aria-modal="true"><button class="x alt" data-close aria-label="Close">×</button><div id="mc"></div></div></div>
 <div id="tut" hidden><div id="tring"></div><div id="tpanel"></div></div>
 <canvas id="fx"></canvas>
@@ -635,7 +635,13 @@ function gameTouch(x){modal(`<div style="text-align:center"><h2>Touch up the fad
   b.onclick=e=>{e.stopPropagation();hits++;sfx.pop(hits);burst(e.clientX,e.clientY,[col,"#fff"],10);b.remove();const gt=$("#gt");if(gt)gt.textContent=hits+" / 10"};stg.appendChild(b);game.tos.push(setTimeout(()=>b.remove(),1300));game.tos.push(setTimeout(spawn,760))};game.tos.push(setTimeout(spawn,500))}
 /* ---------- cart ---------- */
 function showCart(){const lines=Object.entries(st.cart).filter(([,n])=>n>0),tot=lines.reduce((a,[p,n])=>a+n*prodPrice(p),0);
- modal(`<h2>Your cart</h2>${lines.length?`<div class="rows">${lines.map(([pid,n])=>{const[s,K]=pidp(pid);return `<div class="row"><div class="thumb pk">${prodSVG(s,K)}</div><div class="rinfo"><b>${K.n}</b><small>${getSet(s).n}${s<st.season?" · vintage":""} · ${fmt(prodPrice(pid))} each</small></div><div class="qty"><button class="alt sm" data-cminus="${pid}" aria-label="One less">−</button><b>${n}</b><button class="alt sm" data-cplus="${pid}" aria-label="One more" ${stockLeft(pid)<=0?"disabled":""}>+</button></div><div class="rval">${fmt(n*prodPrice(pid))}</div></div>`}).join("")}</div><div class="carttot"><span>Total</span><b>${fmt(tot)}</b></div><div class="btns"><button data-checkout ${st.cash<tot?"disabled":""}>Check out</button><button class="alt" data-clearcart>Empty cart</button></div>${st.cash<tot?`<p class="note">You need ${fmt(tot-st.cash)} more. Take something out or sell a few cards.</p>`:""}`:`<p>Your cart is empty. Add products from the shop.</p><button data-close style="margin-top:10px">Back to the shop</button>`}`)}
+ modal(`<h2>Your cart</h2>${lines.length?`<div class="rows">${lines.map(([pid,n])=>{const[s,K]=pidp(pid);return `<div class="row"><div class="thumb pk">${prodSVG(s,K)}</div><div class="rinfo"><b>${K.n}</b><small>${getSet(s).n}${s<st.season?" · vintage":""} · ${fmt(prodPrice(pid))} each</small></div><div class="qty"><button class="alt sm" data-cminus="${pid}" aria-label="One less">−</button><b>${n}</b><button class="alt sm" data-cplus="${pid}" aria-label="One more" ${stockLeft(pid)<=0?"disabled":""}>+</button></div><div class="rval">${fmt(n*prodPrice(pid))}</div></div>`}).join("")}</div><div class="carttot"><span>Total</span><b>${fmt(tot)}</b></div>${st.cash<tot?`<p class="note" style="margin-bottom:10px">You're ${fmt(tot-st.cash)} short. Fit to my cash takes out just enough, starting with the most expensive items, so the rest fits.</p>`:""}<div class="btns">${st.cash<tot?`<button class="gold" data-fitbuy ${trimPlan().keep?"":"disabled"}>Buy what I can afford</button><button class="alt" data-fitcart>Fit to my cash</button>`:`<button data-checkout>Check out</button>`}<button class="alt" data-clearcart>Empty cart</button></div>`:`<p>Your cart is empty. Add products from the shop.</p><button data-close style="margin-top:10px">Back to the shop</button>`}`)}
+function trimPlan(){const c={...st.cart};let tot=Object.entries(c).reduce((a,[p,n])=>a+n*prodPrice(p),0);
+ const order=Object.keys(c).sort((a,b)=>prodPrice(b)-prodPrice(a));let removed=0;
+ for(const p of order){if(tot<=st.cash)break;const pr=prodPrice(p),need=Math.min(c[p],Math.ceil((tot-st.cash)/pr-1e-9));c[p]-=need;removed+=need;tot-=need*pr;if(c[p]<=0)delete c[p]}
+ if(tot>st.cash){for(const p of Object.keys(c).sort((a,b)=>prodPrice(a)-prodPrice(b))){while(c[p]>0&&tot>st.cash){c[p]--;removed++;tot-=prodPrice(p)}if(!c[p])delete c[p]}}
+ return{cart:c,removed,tot,keep:Object.values(c).reduce((a,b)=>a+b,0)}}
+function fitCart(){const t=trimPlan();st.cart=t.cart;save();renderTop();toast(t.keep?`Took out ${t.removed.toLocaleString("en-US")} item${t.removed===1?"":"s"}. Your cart now costs ${fmt(t.tot)}.`:"You can't afford anything in your cart yet.");return t}
 function checkout(){const lines=Object.entries(st.cart).filter(([,n])=>n>0),tot=lines.reduce((a,[p,n])=>a+n*prodPrice(p),0);if(!lines.length||st.cash<tot)return;st.cash-=tot;
  lines.forEach(([pid,n])=>{const[s,K]=pidp(pid);if(s<st.season)st.vs[s][K.k]-=n;st.seal[pid]=(st.seal[pid]||0)+n});st.cart={};sfx.register();burst(lx,ly,["#e2a845","#ffd27a"],20,"coin");toast(`Checked out ${fmt(tot)}. Everything is in your Stash.`);closeM();tab="stash";after()}
 /* ---------- tracking & achievements ---------- */
@@ -787,6 +793,8 @@ document.addEventListener("click",e=>{lx=e.clientX||lx;ly=e.clientY||ly;const b=
  if(d.cminus){st.cart[d.cminus]--;if(st.cart[d.cminus]<=0)delete st.cart[d.cminus];save();renderTop();return showCart()}
  if("clearcart" in d){st.cart={};save();renderTop();return showCart()}
  if("checkout" in d)return checkout();
+ if("fitcart" in d){fitCart();return showCart()}
+ if("fitbuy" in d){const t=fitCart();if(!t.keep)return showCart();return checkout()}
  if(d.rip){const p=prodPrice(d.rip),[s,K]=pidp(d.rip),qn=Math.min(qtyOf(d.rip),stockLeft(d.rip),Math.floor(st.cash/p));if(qn<1)return;st.cash-=p*qn;if(s<st.season)st.vs[s][K.k]-=qn;sfx.register();if(qn===1)return openFlow(d.rip,genOpen(d.rip),p);if(qn<qtyOf(d.rip))toast(`You could afford ${qn}, so that's how many you got.`);return massOpen([[d.rip,qn]],p*qn)}
  if(d.maxq){const p=prodPrice(d.maxq),n=Math.max(1,Math.min(1000,Math.floor(st.cash/p),stockLeft(d.maxq))),e=document.querySelector(`[data-qfor="${d.maxq}"]`);if(e)e.value=n;toast(Math.floor(st.cash/p)<1?"You can't afford one yet.":`You can afford ${n>=1000&&Math.floor(st.cash/p)>1000?"over 1,000, so it's set to the 1,000 limit":n.toLocaleString("en-US")} (${fmt(n*p)}).`);return}
  if(d.openall){const pid=d.openall,n=st.seal[pid]||0;if(!n)return;delete st.seal[pid];return massOpen([[pid,n]],0)}
