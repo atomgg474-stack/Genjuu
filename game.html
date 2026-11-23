@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- GENJUU_BUILD=2 -->
+<!-- GENJUU_BUILD=3 -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Genjuu Card Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -47,6 +47,13 @@ button:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
 #cartbtn em{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;font-style:normal;font-size:12px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;border:2px solid #2b190e;padding:0 5px}
 .tick{background:#2b190e;color:#e9d3ae;padding:7px max(3vw,14px);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:2px solid #1a0f08}
 .tick b{color:var(--brass)}
+.goals{background:#2b190e;border-bottom:2px solid #1a0f08;padding:8px max(3vw,14px) 22px;color:#e9d3ae;font-size:13px}
+.gtrack{position:relative;height:12px;background:#1a0f08;border:1px solid #e2a84566;border-radius:8px;margin:6px 8px 0}
+.gtrack>i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,#c98a4b,var(--brass),#fff3c4);transition:width .6s}
+.gm{position:absolute;top:-4px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#2b190e;border:2px solid #e2a84588}
+.gm.done{background:var(--brass);border-color:#fff3c4}.gm.goal{box-shadow:0 0 0 3px var(--red),0 0 12px var(--red)}
+.gm b{position:absolute;top:19px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;color:#e9d3ae}
+.ghead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px}.ghead b{color:var(--brass)}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;padding:16px max(3vw,14px) 0;max-width:1320px;margin:0 auto;border-bottom:3px solid var(--wood)}
 .tabs button{border-radius:12px 12px 0 0;box-shadow:none;border-bottom:0;background:var(--paper);color:var(--ink);border-color:var(--line)}
 .tabs button.on{background:var(--wood);color:#f7ecd8;border-color:var(--wood)}
@@ -265,9 +272,10 @@ footer{max-width:1320px;margin:0 auto;padding:0 max(3vw,14px) 30px;color:var(--m
   </div>
 </header>
 <div class="tick" id="ticker"></div>
+<div class="goals" id="goals"></div>
 <nav class="tabs"><button data-tab="shop">Shop</button><button data-tab="stash">Stash <span id="sc"></span></button><button data-tab="col">Binder</button><button data-tab="mkt">Market</button><button data-tab="grade">Grading</button><button data-tab="lab" id="labtab" class="lk">???</button><button data-tab="counter" id="custtab">Counter</button><button data-tab="arena">Arena</button><button data-tab="prof">Profile</button></nav>
 <main id="main"></main>
-<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 2.</span><span class="btns"><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
+<footer><span>Every spirit, set and price in Genjuu is made up. Progress saves on this computer. Build 3.</span><span class="btns"><button class="alt" data-checkupd>Check for updates</button><button class="alt" data-backup>Back up or move save</button><button class="alt" data-reset>Start over</button></span></footer>
 <div id="ov" hidden><div class="mod" role="dialog" aria-modal="true"><button class="x alt" data-close aria-label="Close">×</button><div id="mc"></div></div></div>
 <div id="tut" hidden><div id="tring"></div><div id="tpanel"></div></div>
 <canvas id="fx"></canvas>
@@ -278,7 +286,7 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const R=Math.random,clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const gs=()=>Math.sqrt(-2*Math.log(1-R()))*Math.cos(6.2832*R());
 const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-const SEASON_MS=2*864e5,MKT_MS=150000,FREE_MS=180000;
+const SEASON_MS=3*864e5,OLD_SEASON_MS=2*864e5,MKT_MS=150000,FREE_MS=180000;
 const TYPES=[{n:"Ember",c:"#e8623a",d:"#a8341b",bg:["#ffd99a","#ff8f5a"]},{n:"Tide",c:"#2f9fd6",d:"#1d5f8a",bg:["#c9efff","#62bde8"]},{n:"Grove",c:"#58a84a",d:"#2f6b29",bg:["#e8f7c8","#9fd67a"]},{n:"Spark",c:"#f0c419",d:"#a8820a",bg:["#fff8cc","#ffd24d"]},{n:"Gloom",c:"#7a68b8",d:"#3c2f66",bg:["#4a3f7a","#1f1a3a"]},{n:"Lumen",c:"#e86fb0",d:"#9c3b72",bg:["#ffe8f4","#f5a9d3"]}];
 const WEAK=[1,3,0,2,5,4];
 const RAR=[{n:"Common",v:.25,sym:"●"},{n:"Uncommon",v:1,sym:"◆"},{n:"Rare",v:4,sym:"★"},{n:"Holo",v:15,sym:"★"},{n:"Ultra",v:60,sym:"✦"},{n:"Secret",v:400,sym:"✦"}];
@@ -304,12 +312,17 @@ const KINDS=[
  {k:"v",n:"Reprint box",price:120,d:"6 booster packs from a random older season, reprinted.",o:{packs:["s",6],reprint:1},isNew:1,minS:2},
  {k:"g",n:"Gold foil pack",price:150,d:"5 cards ending in an Ultra or better, with 5× the misprint chance.",o:{slots:[[0,.5,.5],[0,.5,.5],[0,0,1],[0,0,0,1],[0,0,0,0,.85,.15]],mpx:5},isNew:1}];
 const CORE=["p","q","b","e"],SPECIAL=["t","m","n","c","l","d","x","h","v","g"];
-function lineup(s){if(s===1)return["p","t","m","q","n","b","e","c"];const r=rng(s*31+7),pool=SPECIAL.filter(k=>(kind(k).minS||1)<=s).map(k=>[k,r()]).sort((a,b)=>a[1]-b[1]).map(a=>a[0]),n=Math.min(pool.length,4+Math.floor((s-1)/2));return [...CORE,...pool.slice(0,n)].sort((a,b)=>kind(a).price-kind(b).price)}
+const FLAG_N=["Collector chest","Shrine vault","Lantern reliquary","Dragon hoard","Celestial ark","Spirit throne","Starforge","Eternal treasury"];
+function flagship(s){const L=Math.max(0,s-2),n=FLAG_N[Math.min(L,FLAG_N.length-1)]+(L>=FLAG_N.length?" "+["II","III","IV","V","VI","VII","VIII","IX","X"][Math.min(8,L-FLAG_N.length)]:""),packs=30+30*L,ul=2+2*L,se=1+L,mp=L,ev=packs*47+ul*55+se*368+mp*140;
+ return{k:"f",n,price:Math.round(ev*1.03/50)*50,lvl:L,d:`${packs} premium packs, ${ul} Ultras, ${se} guaranteed Secret${se>1?"s":""}${mp?` and ${mp} guaranteed Holo-or-better misprint${mp>1?"s":""}`:""}. A new, bigger flagship arrives every season.`,o:{packs:["p",packs],top:[...Array(ul).fill(4),...Array(se).fill(5)],mpTop:mp}}}
+const kindAt=(k,s)=>k==="f"?flagship(s):kind(k);
+function lineup(s){if(s===1)return["p","t","m","q","n","b","e","c"];const r=rng(s*31+7),pool=SPECIAL.filter(k=>(kind(k).minS||1)<=s).map(k=>[k,r()]).sort((a,b)=>a[1]-b[1]).map(a=>a[0]).filter(k=>k!=="c"),n=Math.min(pool.length,4+Math.floor((s-1)/2));return [...CORE,...pool.slice(0,n)].sort((a,b)=>kind(a).price-kind(b).price).concat("f")}
 const SEEN=(k,s)=>{for(let i=1;i<s;i++)if(lineup(i).includes(k))return true;return false};
 const newIn=s=>s<2?[]:lineup(s).filter(k=>!lineup(s-1).includes(k));
 const VK=["p","b","e"];
 const SLOTS={s:[[.72,.28],[.72,.28],[.72,.28],[0,.7,.3],[0,0,.8,.15,.045,.005]],p:[[0,.6,.4],[0,.6,.4],[0,.6,.4],[0,.6,.4],[0,0,0,.7,.26,.04]]};
-const TITLES=[[0,"Broke kid"],[250,"Pocket-money collector"],[2000,"Weekend flipper"],[15000,"Stall regular"],[100000,"Card shark"],[400000,"Vault keeper"],[1e6,"Genjuu millionaire"]];
+const TITLES=[[0,"Broke kid"],[250,"Pocket-money collector"],[2000,"Weekend flipper"],[15000,"Stall regular"],[100000,"Card shark"],[400000,"Vault keeper"],[1e6,"Genjuu millionaire"],[1e7,"Ten-million tycoon"],[1e8,"Spirit magnate"],[1e9,"Genjuu billionaire"],[1e10,"Card emperor"],[1e11,"Legend of the stalls"],[1e12,"Genjuu trillionaire"]];
+const goalOf=s=>s<=1?1e6:10**(5+s);const MILES=[1e7,1e8,1e9,1e10,1e11,1e12];
 const TIERS={std:{n:"Standard",ms:90000,fee:x=>(3+.06*rawVal(x))*gradeMul()},exp:{n:"Express",ms:15000,fee:x=>(8+.15*rawVal(x))*gradeMul()}};
 const EVENTS=[{n:"Lantern Festival",d:"Lumen spirits from every season are worth 40% more all season long.",fx:{type:5,mult:1.4},task:{k:"packs",n:10,txt:"Open 10 packs"}},
  {n:"Grader's Holiday",d:"Grading fees are 40% off all season.",fx:{gradeOff:.4},task:{k:"graded",n:3,txt:"Grade 3 cards"}},
@@ -369,13 +382,13 @@ const rawVal=x=>cbase(x)*rawM(x.q);
 const val=x=>(x.g?cbase(x)*GMUL(x.g)*(x.lab?1.35:1):rawVal(x))*(isMp(x)?5:1)*(x.disp?1.2:1);
 const condLabel=q=>q>=9.5?"Pristine":q>=8.5?"Near mint":q>=7?"Lightly played":q>=5?"Played":"Damaged";
 const certFee=x=>(25+.2*rawVal(x))*(labRank()>=3?.75:1)*(1-(evFx().labOff||0)),restFee=x=>(4+.12*rawVal(x))*(labRank()>=1?.85:1)*(1-(evFx().labOff||0));
-const pidp=pid=>{const[s,k]=pid.split("-");return[+s,kind(k)]};
+const pidp=pid=>{const[s,k]=pid.split("-");return[+s,kindAt(k,+s)]};
 const prodPrice=pid=>{const[s,K]=pidp(pid);return K.price*(s<st.season?vint(s)*1.15:1)};
 const sealVal=pid=>{const[s,K]=pidp(pid);return .85*K.price*vint(s)};
 const stockLeft=pid=>{const[s,K]=pidp(pid);if(s>=st.season)return 1e9;return((st.vs[s]||{})[K.k]||0)-(st.cart[pid]||0)};
 const nw=()=>st.cash+st.cards.reduce((a,x)=>a+val(x),0)+Object.entries(st.seal).reduce((a,[p,n])=>a+n*sealVal(p),0);
 const byId=id=>st.cards.find(x=>x.id===+id);
-const fmt=n=>n>=1e6?"$"+(n/1e6).toFixed(2)+"M":n>=1000?"$"+Math.round(n).toLocaleString("en-US"):"$"+n.toFixed(2);
+const fmt=n=>n>=1e12?"$"+(n/1e12).toFixed(2)+"T":n>=1e9?"$"+(n/1e9).toFixed(2)+"B":n>=1e6?"$"+(n/1e6).toFixed(2)+"M":n>=1000?"$"+Math.round(n).toLocaleString("en-US"):"$"+n.toFixed(2);
 const dur=ms=>{ms=Math.max(0,ms);const s=Math.ceil(ms/1000),d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0;return d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${m}:${String(s%60).padStart(2,"0")}`};
 const chgp=f=>Math.abs(f)<.005?`<span class="fl">±0%</span>`:f>0?`<span class="up">▲ ${Math.round(f*100)}%</span>`:`<span class="dn">▼ ${Math.round(-f*100)}%</span>`;
 const pick=d=>{let x=R(),i=0;for(;i<d.length-1;i++){x-=d[i];if(x<0)return i}return i};
@@ -390,6 +403,7 @@ function genOpen(pid){const[s,K]=pidp(pid),o=K.o,out=[];
  if(o.blister)[[.6,.4],[0,.7,.3],[0,0,.6,.28,.1,.02]].forEach(d=>out.push(pull(s,pick(luckD(d)),getSet(s).feat)));
  if(o.mystery){const n=2+(R()*11|0);for(let i=0;i<n;i++)out.push(pull(s,pick([.5,.27,.15,.06,.018,.002])))}
  (o.top||[]).forEach(r=>out.push(pull(s,r)));
+ for(let i=0;i<(o.mpTop||0);i++){const x=pull(s,pick([0,0,0,.6,.3,.1]));if(!isMp(x))x.mp=R()*4|0;out.push(x)}
  if(out.length>10)out.sort((a,b)=>def(a).r-def(b).r||rawVal(a)-rawVal(b));return out}
 /* ---------- sound ---------- */
 let AC=null,MG=null,NB=null;
@@ -466,6 +480,7 @@ function prodSVG(s,K){const S=getSet(s),c=S.col,lab=`SEASON ${s}`,ink=K_,id="sh"
  else if(k==="d"){b+=`<rect x="44" y="30" width="72" height="108" rx="6" fill="${c}" stroke="${ink}" stroke-width="3"/><path d="M44 54 H116" stroke="${ink}" stroke-width="2.5"/><rect x="44" y="30" width="72" height="24" rx="6" fill="#0003"/><rect x="54" y="62" width="52" height="56" rx="4" fill="#fff4dc" stroke="${ink}" stroke-width="2"/><g transform="translate(80 90) scale(1.4)">${motif(S.feat)}</g>${txt(48,"STARTER",9)}${txt(132,"15 CARDS",8)}`}
  else if(k==="l"){b+=`<rect x="22" y="40" width="116" height="82" rx="6" fill="#f3e4c4" stroke="${ink}" stroke-width="3"/><path d="M22 44 L80 88 L138 44" fill="none" stroke="${ink}" stroke-width="3" stroke-linejoin="round"/><circle cx="80" cy="88" r="14" fill="#d4563a" stroke="${ink}" stroke-width="2.5"/><polygon points="${star(80,88,8,3.5)}" fill="#e2a845"/>${txt(116,"LUCKY",10)}`}
  else if(k==="x"){b+=`<path d="M18 46 H142 V68 A10 10 0 0 0 142 88 V110 H18 V88 A10 10 0 0 0 18 68Z" fill="#e2a845" stroke="${ink}" stroke-width="3" stroke-linejoin="round"/><path d="M50 46 V110" stroke="${ink}" stroke-width="2" stroke-dasharray="4 4"/><text x="96" y="78" text-anchor="middle" font-family="Dela Gothic One" font-size="13" fill="${ink}">MISPRINT</text><text x="96" y="96" text-anchor="middle" font-family="Dela Gothic One" font-size="10" fill="#d4563a">TICKET</text><text x="34" y="84" text-anchor="middle" font-family="Dela Gothic One" font-size="18" fill="${ink}" transform="rotate(180 34 78)">?</text>`}
+ else if(k==="f"&&K.lvl>0){const L=K.lvl,bc=["#5b3a7a","#2e5f7a","#7a2e2e","#2e7a5a","#2b2b44","#7a5a1c","#3a2416"][(L-1)%7],gems=["#e86fb0","#2f9fd6","#58a84a","#f0c419","#e8623a","#7a68b8"];b+=`<ellipse cx="80" cy="70" rx="${66+L*2}" ry="${46+L}" fill="#ffd27a" opacity="${Math.min(.75,.35+L*.08)}"/><rect x="20" y="66" width="120" height="72" rx="6" fill="${bc}" stroke="${ink}" stroke-width="3"/><path d="M20 68 Q20 26 80 26 Q140 26 140 68Z" fill="${bc}" stroke="${ink}" stroke-width="3"/><path d="M20 68 Q20 26 80 26 Q140 26 140 68Z" fill="#fff" opacity=".18"/><rect x="38" y="28" width="10" height="110" fill="#e2a845" stroke="${ink}" stroke-width="2"/><rect x="112" y="28" width="10" height="110" fill="#e2a845" stroke="${ink}" stroke-width="2"/><rect x="20" y="64" width="120" height="8" fill="#e2a845" stroke="${ink}" stroke-width="2"/>${Array.from({length:Math.min(6,L)},(_,i)=>`<circle cx="${80+(i-(Math.min(6,L)-1)/2)*13}" cy="46" r="5" fill="${gems[i%6]}" stroke="${ink}" stroke-width="1.5"/>`).join("")}<rect x="68" y="76" width="24" height="26" rx="3" fill="#e2a845" stroke="${ink}" stroke-width="2.5"/><polygon points="${star(80,89,8,3.5)}" fill="#fff3c4"/>${txt(126,"S"+s+" FLAGSHIP",9)}`}
  else{b+=`<ellipse cx="80" cy="70" rx="64" ry="44" fill="#ffd27a" opacity=".35"/><rect x="22" y="66" width="116" height="72" rx="6" fill="#7a4a28" stroke="${ink}" stroke-width="3"/><path d="M22 68 Q22 30 80 30 Q138 30 138 68Z" fill="#8b5a32" stroke="${ink}" stroke-width="3"/><path d="M30 64 Q34 40 80 38 Q126 40 130 64" fill="none" stroke="#0003" stroke-width="2"/><rect x="40" y="32" width="10" height="106" fill="#e2a845" stroke="${ink}" stroke-width="2"/><rect x="110" y="32" width="10" height="106" fill="#e2a845" stroke="${ink}" stroke-width="2"/><rect x="70" y="58" width="20" height="24" rx="3" fill="#e2a845" stroke="${ink}" stroke-width="2.5"/><circle cx="80" cy="68" r="3" fill="${ink}"/><rect x="58" y="96" width="44" height="24" rx="4" fill="${c}" stroke="${ink}" stroke-width="2"/>${txt(113,"S"+s,10)}`}
  return b+"</svg>"}
 /* ---------- ui helpers ---------- */
@@ -477,7 +492,7 @@ function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clea
 function news(t){st.news.unshift(t);st.news=st.news.slice(0,10);toast(t)}
 /* ---------- views ---------- */
 function prodTile(pid){const[s,K]=pidp(pid),p=prodPrice(pid),vin=s<st.season,left=stockLeft(pid);
- const tag=!vin&&s===st.season?(newIn(s).includes(K.k)?`<span class="ptag new">${SEEN(K.k,s)?"Back this season":"Brand new"}</span>`:CORE.includes(K.k)?"":`<span class="ptag">Seasonal</span>`):"";
+ const tag=K.k==="f"?`<span class="ptag new">Season ${s} flagship</span>`:!vin&&s===st.season?(newIn(s).includes(K.k)?`<span class="ptag new">${SEEN(K.k,s)?"Back this season":"Brand new"}</span>`:CORE.includes(K.k)?"":`<span class="ptag">Seasonal</span>`):"";
  return `<div class="prod">${tag}<div class="pa">${prodSVG(s,K)}</div><h3>${K.n}</h3><p>${vin?`${getSet(s).n}. ${left>0?left+" left on the shelf":"Sold out"}`:K.d}</p><div class="pr"><b>${fmt(p)}</b>${vin?`<span class="up">×${vint(s).toFixed(1)} vintage</span>`:""}</div><div class="btns"><input type="number" class="qty" data-qfor="${pid}" min="1" max="${Math.max(1,Math.min(1000,left))}" step="1" value="1" inputmode="numeric" aria-label="How many" title="How many (up to 1,000)"><button class="alt sm" data-maxq="${pid}" title="Most you can afford">Max</button><button data-add="${pid}" ${left<=0?"disabled":""}>Add to cart</button><button class="alt" data-rip="${pid}" ${st.cash<p||left<=0?"disabled":""}>Rip now</button></div></div>`}
 function shopHTML(){const s=st.season,S=getSet(s),T=TYPES[S.feat];
  let v="";for(let o=s-1;o>=1;o--)v+=`<div class="vhd"><h3>${getSet(o).n} · Season ${o}</h3><span class="up">cards now worth ×${vint(o).toFixed(1)}</span></div><div class="shelf">${VK.map(k=>prodTile(o+"-"+k)).join("")}</div>`;
@@ -511,6 +526,8 @@ function renderTop(){const w=nw();let ti=0;TITLES.forEach((t,i)=>{if(w>=t[0])ti=
  $("#cash").textContent=fmt(st.cash);$("#nw").textContent=fmt(w);$("#rtitle").textContent=TITLES[ti][1];
  $("#bar").style.width=(nx?Math.min(100,(w-TITLES[ti][0])/(nx[0]-TITLES[ti][0])*100):100)+"%";$("#next").textContent=nx?`Next: ${nx[1]} at ${fmt(nx[0])}`:"Goal reached. Keep stacking.";
  const left=st.free-Date.now(),fb=$("#free");fb.disabled=left>0;fb.textContent=left>0?`Free pack ${dur(left)}`:"Claim free pack";
+ {const g=goalOf(st.season),ms=MILES.concat(g>1e12?[g]:[]),lo=6,hi=Math.log10(ms[ms.length-1]),pct=w<=1e6?0:Math.min(100,(Math.log10(w)-lo)/(hi-lo)*100),done=st.sgoal&&st.sgoal[st.season];
+  $("#goals").innerHTML=`<div class="ghead"><span>Season ${st.season} goal: <b>${fmt(g)}</b> net worth ${done?"· reached!":`· reward: a free ${flagship(st.season).n}`}</span><span>${w>=g?"Goal met":`${fmt(Math.max(0,g-w))} to go`} · next season's goal is ${fmt(goalOf(st.season+1))}</span></div><div class="gtrack"><i style="width:${pct}%"></i>${ms.map(m=>`<span class="gm${w>=m?" done":""}${m===g?" goal":""}" style="left:${(Math.log10(m)-lo)/(hi-lo)*100}%"><b>${fmt(m).replace(".00","")}</b></span>`).join("")}</div>`}
  $("#cartn").textContent=cartN();$("#seasontxt").textContent=`Season ${st.season} · ${getSet(st.season).n} · next in ${dur(nextSeasonAt()-Date.now())}`;
  $("#ticker").innerHTML=`<b>News</b> · ${st.news[0]||""}`;$("#sfxb").classList.toggle("on",st.sfx);$("#sfxb").textContent=st.sfx?"Sound on":"Sound off";$("#musb").classList.toggle("on",st.music);$("#musb").textContent=st.music?"Music on":"Music off";
  $("#dailybtn").classList.toggle("ready",dailyReady());$("#custtab").textContent=st.cust.length?`Counter (${st.cust.length})`:"Counter";
@@ -524,6 +541,7 @@ function timers(){const now=Date.now();$$("[data-season-cd]").forEach(e=>e.textC
 function after(){const w=nw();st.best=Math.max(st.best,w);const have=new Set(st.cards.map(x=>x.s+"-"+x.c));
  for(let s=1;s<=st.season;s++)if(!st.bonus[s]&&getSet(s).cards.filter(c=>!c.promo).every(c=>have.has(s+"-"+c.i))){st.bonus[s]=1;st.cash+=1000;news(`SET COMPLETE: every ${getSet(s).n} spirit is in your binder. Bonus $1,000 and a sneak peek at next season.`);if(s===st.season)setTimeout(()=>{if(ov.hidden&&tutI<0)showPeek(s)},1600);burst(innerWidth/2,innerHeight/3,RCOL,60,"conf")}
  checkAch();
+ if(!st.sgoal)st.sgoal={};if(st.season>=2&&!st.sgoal[st.season]&&w>=goalOf(st.season)){st.sgoal[st.season]=1;const pid=st.season+"-f",F=flagship(st.season);st.seal[pid]=(st.seal[pid]||0)+1;news(`SEASON GOAL: You reached ${fmt(goalOf(st.season))}! A free ${F.n} is in your Stash.`);setTimeout(()=>{if(ov.hidden&&tutI<0){modal(`<div style="text-align:center"><small class="note">SEASON ${st.season} GOAL REACHED</small><h2>${fmt(goalOf(st.season))} net worth!</h2><div class="pa" style="height:170px;margin:10px 0">${prodSVG(st.season,F)}</div><p>Your reward, a <b>${F.n}</b>, is in your Stash. Next season's goal is ${fmt(goalOf(st.season+1))}.</p><button data-close>Amazing</button></div>`);sfx.season();burst(innerWidth/2,innerHeight/3,RCOL,120,"conf")}},800)}
  if(!st.won&&w>=1e6){st.won=true;setTimeout(()=>{modal(`<div style="text-align:center"><h2>Genjuu millionaire</h2><p>Net worth ${fmt(nw())}. From one booster pack to a fortune. Keep going and see how high it climbs.</p><button data-close style="margin-top:12px">Keep playing</button></div>`);sfx.season();burst(innerWidth/2,innerHeight/2,RCOL,120,"conf")},400)}
  save();renderTab()}
 /* ---------- market & seasons ---------- */
@@ -722,11 +740,12 @@ const evoNeed=(s,i)=>getSet(s).cards[i].r>=3?4:3;
 const TUT=[
  {h:"Welcome to Genjuu",p:"You run a tiny spirit-card stall. Buy packs, rip them open, grade and restore your best spirits, and grow $60 into $1,000,000. This guide shows you every part of the stall."},
  {sel:"#stats",h:"Your money",p:"Cash is what you can spend. Net worth adds up everything you own: cards, sealed product and cards away at the grader. Your rank climbs as your net worth grows."},
- {sel:"#seasonpill",h:"Seasons",p:"Every 2 days a new season starts with a brand-new set of 30 spirits and a new event. Older seasons turn vintage: their cards and sealed boxes gain 40% value every season, up to 5×. When a season ends you get a recap of how it went."},
+ {sel:"#goals",h:"Money goals",p:"This bar tracks your net worth on the way to $1 trillion. Each season has a goal, 10 times bigger than the last. Reach it to win a free flagship chest."},
+ {sel:"#seasonpill",h:"Seasons",p:"Every 3 days a new season starts with a brand-new set of 30 spirits and a new event. Older seasons turn vintage: their cards and sealed boxes gain 40% value every season, up to 5×. When a season ends you get a recap of how it went."},
  {tab:"shop",sel:".banner",h:"This season",p:"The banner shows the current set, its featured type and its three chase cards. The timer tells you when it turns vintage."},
  {tab:"shop",sel:"#peekbox",h:"Sneak peeks",p:"Collect all 30 spirits in the current set and you get the $1,000 set bonus plus an early look at the first card of next season."},
  {tab:"shop",sel:"#eventbox",h:"Season events and promos",p:"Each season has an event with a bonus, like cheaper grading or doubled arena rewards. Finish the event task to earn a promo card you can only get that season. A second promo comes from the daily gift."},
- {tab:"shop",sel:".shelf .prod",h:"The shelf",p:"Booster packs, premium packs and two kinds of boxes are always here. Every season the specials change, like tins, mystery bags, lucky envelopes, gold foil packs or misprint tickets, and more appear as seasons go by. Prices stay fixed all season."},
+ {tab:"shop",sel:".shelf .prod",h:"The shelf",p:"Booster packs, premium packs, two kinds of boxes and a flagship chest are always here. The flagship gets bigger and better every season. Every season the specials change, like tins, mystery bags, lucky envelopes, gold foil packs or misprint tickets, and more appear as seasons go by. Prices stay fixed all season."},
  {tab:"shop",sel:"#vintage",h:"Vintage shelf",p:"When a season ends, its last boxes land here in limited stock at vintage prices. Opening them gives you vintage cards that are already worth more."},
  {sel:"#cartbtn",h:"Your cart",p:"Add products to your cart and check out in one go. Want something right now? Use Rip now on any product to buy it and open it on the spot."},
  {sel:"#free",h:"Free packs",p:"Every 3 minutes you can claim a free booster pack, so you can never go fully broke."},
@@ -806,6 +825,7 @@ document.addEventListener("click",e=>{lx=e.clientX||lx;ly=e.clientY||ly;const b=
   if(!list.length){toast("Nothing to sell there.");return}const n=list.length,s=sellList(list);toast(`Sold ${n} cards for ${fmt(s)}.`);after();return}
  if(d.mbuy){const[s,i]=d.mbuy.split("-").map(Number),p=rawVal({s,c:i,q:8.5,g:0})*1.1;if(st.cash<p)return;st.cash-=p;st.cards.push({id:st.nid++,s,c:i,q:+(7.6+R()*1.6).toFixed(2),g:0,lab:false,r:0});sfx.register();toast(`Bought ${getSet(s).cards[i].n} for ${fmt(p)}.`);after();return}
  if(d.msell){const[s,i]=d.msell.split("-").map(Number),mine=st.cards.filter(x=>x.s===s&&x.c===i&&!x.inq&&!x.lock);if(!mine.length)return;const low=mine.reduce((a,x)=>val(x)<val(a)?x:a),v=sellList([low]);toast(`Sold ${getSet(s).cards[i].n} for ${fmt(v)}.`);after();return}
+ if("checkupd" in d){save();toast("Checking for updates…");setTimeout(()=>location.reload(),300);return}
  if("daily" in d)return showDaily();
  if("claimdaily" in d){if(!dailyReady())return;const nd=nextDay();st.daily={last:dkey(Date.now()),streak:nd};DAILY[nd-1][1]();sfx.register();burst(lx,ly,RCOL,40,"conf");toast(`Day ${nd} gift: ${DAILY[nd-1][0]}.`);after();return nd===7?showPromoPick():showDaily()}
  if("promopick" in d)return showPromoPick();
@@ -842,14 +862,20 @@ document.addEventListener("click",e=>{lx=e.clientX||lx;ly=e.clientY||ly;const b=
  if("doreset" in d){const keep={sfx:st.sfx,music:st.music};st=fresh();Object.assign(st,keep,{tut:1});for(const k in SETC)delete SETC[k];usedNames.clear();initSeason(1);tab="stash";cset=1;closeM();after();toast("Fresh start. Your first pack is in the Stash.")}
 });
 /* ---------- boot ---------- */
-const BUILD=2;let launch=false;
-if((st.seenBuild||0)<2){if(st.season<2&&seasonNow()<2)st.start=Math.min(st.start,Date.now()-SEASON_MS);st.seenBuild=BUILD;launch=true}
+const BUILD=3,prevSeen=st.seenBuild||0;let launch=false,upd3=false;
+if(prevSeen===2){const cs=st.start+(st.season-1)*OLD_SEASON_MS;st.start=cs-(st.season-1)*SEASON_MS;upd3=true}
+if(prevSeen<2){if(st.season<2&&seasonNow()<2)st.start=Math.min(st.start,Date.now()-SEASON_MS);launch=true}
+st.seenBuild=BUILD;
 checkTime();
 if(launch){addSeal("b",1);addSeal("q",5);news(`UPDATE: Season ${st.season} arrived early. Your launch gift is in the Stash.`)}
 after();setInterval(checkTime,1000);
 if(!st.tut)setTimeout(()=>tutShow(0),500);
 else if(launch)setTimeout(showLaunch,700);
+else if(upd3)setTimeout(showUpd3,700);
 if(!st.tut)launch=false;
+function showUpd3(){const F=flagship(st.season),g=goalOf(st.season);tab="shop";renderTab();
+ modal(`<div style="text-align:center"><small class="note">GENJUU UPDATE · BUILD ${BUILD}</small><h2 style="margin:6px 0">Bigger goals, bigger loot</h2></div><div class="recap"><div class="stat"><small>Season ${st.season} flagship</small><b>${F.n}</b></div><div class="stat"><small>Season ${st.season} goal</small><b>${fmt(g)}</b></div><div class="stat"><small>Goal reward</small><b>A free ${F.n}</b></div><div class="stat"><small>Seasons now last</small><b>3 days</b></div><div class="stat"><small>Next season in</small><b>${dur(nextSeasonAt()-Date.now())}</b></div></div>
+ <p style="text-align:center">A flagship chest is on the shelf every season, and from Season 3 on it gets replaced with something even bigger. The new bar at the top tracks your net worth all the way to $1 trillion, and every season's goal is 10× the last. Ranks now go up to Genjuu trillionaire.</p><div style="display:grid;place-items:center"><div class="pa" style="height:160px">${prodSVG(st.season,F)}</div></div><div class="btns" style="justify-content:center;margin-top:12px"><button class="gold" data-close>Let's go</button></div>`);sfx.season();setTimeout(()=>burst(innerWidth/2,innerHeight/3,RCOL,90,"conf"),250)}
 function showLaunch(){launch=false;const S=getSet(st.season),E=EVENTS[(st.season-1)%EVENTS.length],nw2=newIn(st.season).map(k=>kind(k).n),old=getSet(st.season-1);tab="shop";renderTab();
  modal(`<div style="text-align:center"><small class="note">GENJUU UPDATE · BUILD ${BUILD}</small><h2 style="font-size:clamp(28px,4vw,42px);margin:6px 0">Season ${st.season} is here early!</h2><p class="big-res"><b>${S.n}</b> just opened at your stall.</p></div>
  <div class="fan" style="margin:10px auto 18px;max-width:420px">${[24,27,29].map((i,k)=>`<div class="fc" style="--k:${k}"><div class="tilt">${cardHTML({s:st.season,c:i})}</div></div>`).join("")}</div>
@@ -858,7 +884,7 @@ function showLaunch(){launch=false;const S=getSet(st.season),E=EVENTS[(st.season
   <div class="stat"><small>Season event</small><b>${E.n}</b></div>
   <div class="stat"><small>New on the shelf</small><b>${nw2.length?nw2.join(", "):"Fresh lineup"}</b></div>
   <div class="stat"><small>${old.n} is now vintage</small><b>Worth ×${vint(st.season-1).toFixed(1)}</b></div>
-  <div class="stat"><small>Launch gift (in your Stash)</small><b>Booster box + 5 premium packs</b></div>
+  <div class="stat"><small>Launch gift (in your Stash)</small><b>Booster box + 5 premium packs</b></div><div class="stat"><small>Season goal</small><b>${fmt(goalOf(st.season))}</b></div><div class="stat"><small>Flagship on the shelf</small><b>${flagship(st.season).n}</b></div>
  </div>
  <p style="text-align:center">${E.d} Your ${old.n} cards and sealed packs just went up in value, and its last boxes are on the Vintage shelf. Buy up to 1,000 at once with the number box and the Max button.</p>
  <div class="btns" style="justify-content:center;margin-top:14px">${st.recaps.length?`<button class="alt" data-recap="0">See my Season ${old.s} recap</button>`:""}<button class="alt" data-tab="stash">Open my launch gift</button><button class="gold" data-close>To the new season</button></div>`);
